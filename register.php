@@ -6,44 +6,51 @@ $message = '';
 if (isset($_POST)) {
     
     if (
-        isset($_POST['id_club']) &&
-        !empty($_POST['id_club']) &&
-        isset($_POST['nom']) &&
-        !empty($_POST['nom']) &&
-        isset($_POST['prenom']) && 
-        !empty($_POST['prenom']) &&
-        isset($_POST['date_nais']) &&
-        !empty($_POST['date_nais']) &&
-        isset($_POST['email']) && 
-        !empty($_POST['email']) &&
-        isset($_POST['password']) &&
-        !empty($_POST['password']) &&
-        isset($_POST['telephone']) &&
-        !empty($_POST['telephone']))
+        isset($_POST['id_club']) && isset($_POST['nom']) && isset($_POST['prenom'])
+        && isset($_POST['date_nais']) && isset($_POST['email']) && isset($_POST['password']) && isset($_POST['telephone']))
         {
             $id_club = strip_tags($_POST['id_club']);
             $nom = strip_tags($_POST['nom']);
             $prenom = strip_tags($_POST['prenom']);
             $date_nais = strip_tags($_POST['date_nais']);
             $email = strip_tags($_POST['email']);
-            $password = strip_tags($_POST['password']);
+            $password = strip_tags(md5($_POST['password'])); 
+            $password_confirme = strip_tags(md5($_POST['password_confirme']));
             $telephone = strip_tags($_POST['telephone']);
-         {
+       
 
-      //  if ($password == $password_confirme) {
-            $sql = "INSERT INTO `adherant` (`id`, `id_club`, `nom`, `prenom`, `date_nais`, `email`, `password`, `telephone`)
-             VALUES (NULL, '$id_club', '$nom', '$prenom ', '$date_nais', '$email', '$password', '$telephone');";
-            var_dump($sql);
-            $query = $db->prepare($sql);
+        if ($password == $password_confirme) {
+             
+        $sql = "INSERT INTO `adherant` (`id`, `id_club`, `nom`, `prenom`, `date_nais`, `email`, `password`, `telephone`) 
+        VALUES (NULL, '$id_club', '$nom', '$prenom ', '$date_nais', '$email', '$password', ' $telephone');";
+        
 
-            $query->execute();
+        $query = $db->prepare($sql);
+
+
+        $query->execute();
+      
+
+        header('Location: index.php');
             
-           // header('Location: login.php');
-      //  }  else {
-            //$message = 'Le mot de passe confirmé est different ';
-      //  }
+          
+       }  else {
+            $message = 'Le mot de passe confirmé est different ';
+    
     }
 }
+
+
+$sql_liste = "SELECT adherant.*,club.nom  as nom_club  FROM adherant INNER JOIN club ON adherant.id_club=club.id";
+
+// On prépare la requête
+$query = $db->prepare($sql_liste);
+
+// On exécute la requête
+$query->execute();
+
+// On stocke le résultat dans un tableau associatif
+$result = $query->fetchAll(PDO::FETCH_ASSOC);
 }
 
 
@@ -162,7 +169,7 @@ $result_club = $query->fetchAll(PDO::FETCH_ASSOC);
                                             </div>
                                             <div class="col-sm-6">
                                                 <input type="password" class="form-control form-control-user"
-                                                    id="exampleRepeatPassword" name="password" placeholder="Confirmer le mot de passe ">
+                                                    id="exampleRepeatPassword" name="password_confirme" placeholder="Confirmer le mot de passe ">
                                             </div>
                                         </div>
                                         <button type="submit" class="btn btn-primary btn-user btn-block"  value="Submit">S'inscrire </button>
@@ -174,7 +181,7 @@ $result_club = $query->fetchAll(PDO::FETCH_ASSOC);
                                     </form>
                                     <hr>
                                     <div class="text-center">
-                                        <a class="small" href="login.php">Déjà inscrit? Connectez vous!</a>
+                                        <a class="small" href="index.php">Déjà inscrit? Connectez vous!</a>
                                     </div>
                                 </div>
                             </div>

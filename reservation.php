@@ -1,48 +1,95 @@
 <?php
-// session_start();
-// if (!isset( $_SESSION['user'])) {
-//     header ('location: login.php');
-// } 
-// $user = $_SESSION['user'];
+
+session_start();
+if (!isset( $_SESSION['user'])) {
+    header ('location: index.php');
+} 
+$user = $_SESSION['user'];
+
+
 require_once('connectdb.php');
 
-$message = "";
 
-// function keygen($nbChar){
-//     return substr(str_shuffle(
-// 'abcdefghijklmnopqrstuvwxyzABCEFGHIJKLMNOPQRSTUVWXYZ0123456789_'),1, $nbChar);
-//  }
+$message = "";
+$message_save = "";
+
+
+
+
 
  
 
 if(isset($_POST)){
-  // var_dump($_POST);
-    if(isset($_POST['date']) && isset($_POST['heure_debut']) 
+//var_dump($_POST);
+    if(isset($_POST['date_reservation']) && isset($_POST['heure_debut']) 
         && isset($_POST['heure_fin'])){
            
-            $date = strip_tags($_POST['date']);
+            $date_reservation = strip_tags($_POST['date_reservation']);
             $heure_debut = strip_tags($_POST['heure_debut']);
             $heure_fin = strip_tags($_POST['heure_fin']);
-           
-           
-            $sql = "INSERT INTO `reservation` (`id`, `date`, `heure_debut`, `heure_fin`) VALUES (NULL, '$date', '$heure_debut','$heure_fin');";
-            
+            $id_terrain = strip_tags($_POST['id_terrain']);
+            $id_adherant = $user['id'];
+            $id_raisonspecifique =strip_tags($_POST['id_raisonspecifique']);
 
-            $query = $db->prepare($sql);
-
-
+            $sql_resa_existe = "SELECT * FROM `reservation` where date_reservation = '$date_reservation' and ($heure_debut >= heure_debut and $heure_debut < heure_fin)  and id_terrain = $id_terrain";
+            $query = $db->prepare($sql_resa_existe);
             $query->execute();
-          
+            $result_resa_existe = $query->fetchAll(PDO::FETCH_ASSOC);
 
-           header('Location: reservation.php');
+            if (count($result_resa_existe)>0) {
+                $message = 'il y a deja une reservation existant pour la date et heure selectionné';
+            } else if ($heure_debut >= $heure_fin) {
+                $message = 'l\'heure de fin doit etre superieur a l\'heure de debut';
+            } else {
+                $sql = "INSERT INTO `reservation` (`id`, `id_adherant`, `id_terrain`, `id_raisonspecifique`, `date_ajout`, 
+                `heure_debut`, `heure_fin`, `date_reservation`) VALUES (NULL, '$id_adherant', '$id_terrain', '$id_raisonspecifique', CURRENT_TIMESTAMP, '$heure_debut', '$heure_fin', '$date_reservation');";
+
+                $query = $db->prepare($sql);
+
+                $query->execute();
+                $message_save = 'enregistrement effectué';
+            
+                //header('Location: reservation.php');
+
+            }
+           
+                
            
         } 
+        // else {
+        //     $message = 'veuillez remplir tout les champs';
+        // }
     
        
 }
 
 
-$sql_liste = "SELECT * FROM `reservation`";
+
+if(isset($_GET)){
+    if(isset($_GET['action']) && !empty($_GET['action'])
+        && isset($_GET['id']) && !empty($_GET['id'])){
+           
+            if (($_GET['action'] == "delete")) {
+
+                $sql = "DELETE FROM `reservation` WHERE `reservation`.`id` =".$_GET['id'].";";
+
+                $query = $db->prepare($sql);
+    
+                $query->execute();
+                $message = "Suppression effectuée";
+                
+            } 
+           
+        }
+       
+}
+
+
+
+$sql_liste = "SELECT reservation.*, terrain.nom as terrain, raisonspecifique.nom as raisonspecifique, raisonspecifique.couleur as couleur, 
+CONCAT(adherant.nom,' ',adherant.prenom) as adherant,adherant.email as email FROM `reservation` inner join terrain 
+on terrain.id = reservation.id_terrain inner join raisonspecifique on raisonspecifique.id = reservation.id_raisonspecifique 
+inner join adherant on adherant.id = reservation.id_adherant";
 
 // On prépare la requête
 $query = $db->prepare($sql_liste);
@@ -52,6 +99,34 @@ $query->execute();
 
 // On stocke le résultat dans un tableau associatif
 $result = $query->fetchAll(PDO::FETCH_ASSOC);
+
+
+
+$sql_raisonspecifique = "SELECT * FROM `raisonspecifique`";
+
+// On prépare la requête
+$query = $db->prepare($sql_raisonspecifique);
+
+// On exécute la requête
+$query->execute();
+
+// On stocke le résultat dans un tableau associatif
+$result_raisonspecifique = $query->fetchAll(PDO::FETCH_ASSOC);
+
+
+
+$sql_terrain = "SELECT * FROM `terrain`";
+
+// On prépare la requête
+$query = $db->prepare($sql_terrain);
+
+// On exécute la requête
+$query->execute();
+
+// On stocke le résultat dans un tableau associatif
+$result_terrain = $query->fetchAll(PDO::FETCH_ASSOC);
+
+
 
 
 //require_once('connectdb.php');
@@ -87,111 +162,11 @@ $result = $query->fetchAll(PDO::FETCH_ASSOC);
 <div id="wrapper">
 
 <!-- Sidebar -->
-<ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
-
-    <!-- Sidebar - Brand -->
-    <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html">
-        <div class="sidebar-brand-icon rotate-n-15">
-            <i class="fas fa-laugh-wink"></i>
-        </div>
-        <div class="sidebar-brand-text mx-3">Paddle</div>
-    </a>
-
-    <!-- Divider -->
-    <hr class="sidebar-divider my-0">
-
-    <!-- Nav Item - Dashboard -->
-    <li class="nav-item active">
-        <a class="nav-link" href="club.php">
-            <i class="fas fa-fw fa-tachometer-alt"></i>
-            <span>Club</span></a>
-    </li>
-    <li class="nav-item active">
-        <a class="nav-link" href="terrain.php">
-            <i class="fas fa-fw fa-tachometer-alt"></i>
-            <span>Terrain</span></a>
-    </li>
-
-    <li class="nav-item active">
-        <a class="nav-link" href="adherant.php">
-            <i class="fas fa-fw fa-tachometer-alt"></i>
-            <span>Adhérant</span></a>
-    </li>
-   
-    <li class="nav-item active">
-        <a class="nav-link" href="reservation.php">
-            <i class="fas fa-fw fa-tachometer-alt"></i>
-            <span>Réservation</span></a>
-    </li>
-<!-- Divider -->
-<hr class="sidebar-divider">
+<?php 
+   include("menu.php");
+?>
 
 
-<li class="nav-item">
-    <a class="nav-link" href="logout.php">
-        <i class="fas fa-sign-out-alt"></i>
-        <span>Déconexion</span></a>
-</li>
-    <!-- Divider -->
-    <hr class="sidebar-divider d-none d-md-block">
-
-    <!-- Sidebar Toggler (Sidebar) -->
-    <div class="text-center d-none d-md-inline">
-        <button class="rounded-circle border-0" id="sidebarToggle"></button>
-    </div>
-
-</ul>
-<!-- End of Sidebar -->
-
-<!-- Content Wrapper -->
-<div id="content-wrapper" class="d-flex flex-column">
-
-    <!-- Main Content -->
-    <div id="content">
-
-        <!-- Topbar -->
-        <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
-
-            <!-- Sidebar Toggle (Topbar) -->
-            <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
-                <i class="fa fa-bars"></i>
-            </button>
-
-            
-                <!-- Nav Item - User Information -->
-                <li class="nav-item dropdown no-arrow">
-                    <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
-                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <span class="mr-2 d-none d-lg-inline text-gray-600 small">Douglas McGee</span>
-                        <img class="img-profile rounded-circle"
-                            src="img/undraw_profile.svg">
-                    </a>
-                    <!-- Dropdown - User Information -->
-                    <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
-                        aria-labelledby="userDropdown">
-                        <a class="dropdown-item" href="#">
-                            <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-                            Profile
-                        </a>
-                        <a class="dropdown-item" href="#">
-                            <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
-                            Settings
-                        </a>
-                        <a class="dropdown-item" href="#">
-                            <i class="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i>
-                            Activity Log
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
-                            <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                            Logout
-                        </a>
-                    </div>
-                </li>
-
-            </ul>
-
-        </nav>
         <!-- End of Topbar -->
 
                 <!-- Begin Page Content -->
@@ -202,28 +177,87 @@ $result = $query->fetchAll(PDO::FETCH_ASSOC);
 
                     <div class="row">
 
-                        <div class="col-lg-4">
+                        <div class="col-lg-12">
 
                             <!-- Circle Buttons -->
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
                                     <h6 class="m-0 font-weight-bold text-primary">Enregister une réservation</h6>
                                 </div>
+                                <?php if($message != "") {
+                                echo '
+                                <div class="alert alert-danger" role="alert">
+                                '. $message .'
+                                </div> ';
+
+                                }
+                                ?>
+                                <?php if($message_save != "") {
+                                echo '
+                                <div class="alert alert-success" role="alert">
+                                '. $message_save .'
+                                </div> ';
+
+                                }
+                                ?>
                                 <div class="card-body">
                                 <form class="user"  method="post">
-                                <div class="form-group row">
-                                    <div class="col-sm-12 mb-3 mb-sm-0">
-                                        <input type="date" class="form-control form-control-user" id="date" name="date"
-                                            placeholder=" date de reservation">
+                                
+                                 <div class="form-group row">
+                                    <div class="col-sm-6 mb-3 mb-sm-0">
+                                    <label for="id_raisonspecifique">Raison Specifique </label>
+                                    <select   class="form-control form-control-user"  name="id_raisonspecifique" name="id_raisonspecifique">
+
+                                        <?php
+                                        $i = 0;
+                                        foreach($result_raisonspecifique as $liste_raisonspecifique){
+                                        $i++;
+                                        ?>
+                                        <option value="<?= $liste_raisonspecifique['id'] ?>"><?= $liste_raisonspecifique['nom'] ?></option>
+
+                                        <?php
+                                        }
+                                        ?>
+                                    </select>
+                                    </div>
+                                     
+                                
+                                    <div class="col-sm-6 mb-3 mb-sm-0">
+                                    <label for="id_terrain">Terrain</label>
+                                    <select   class="form-control form-control-user"  name="id_terrain" id="id_terrain">
+
+                                        <?php
+                                        $i = 0;
+                                        foreach($result_terrain as $liste_terrain){
+                                        $i++;
+                                        ?>
+                                        <option value="<?= $liste_terrain['id'] ?>"><?= $liste_terrain['nom'] ?></option>
+
+                                        <?php
+                                        }
+                                        ?>
+                                    </select>
                                     </div>
                                      
                                 </div>
 
                                 <div class="form-group row">
-                                    <div class="col-sm-12 mb-3 mb-sm-0">
-                                    <label for="hour-select">Veuillez choisir l'heure de début</label>
-                                    <select   class="form-control form-control-user" name = "heure_debut" >
-                                                 
+                                    
+                                    <div class="col-sm-4 mb-3 mb-sm-0">
+                                    <label for="date_reservation">Date de  reservation</label>
+                                        <input type="date" min="<?php
+                                                                   
+                                                                    echo date('Y-m-d');
+                                                                    ?>" class="form-control form-control-user" id="date_reservation" name="date_reservation"
+                                            >
+                                    </div>
+                                     
+                               
+                                    <div class="col-sm-4 mb-3 mb-sm-0">
+                                    <label for="heure_debut">Heure de début</label>
+                                    <select   class="form-control form-control-user" name = "heure_debut"   id = "heure_debut" >
+                                    
+                                    <option value="">selectionner heure de début</option>
                                                  <option value="8">8h</option>
                                                 <option value="9">9h</option>
                                                  <option value="10">10h</option>
@@ -235,17 +269,16 @@ $result = $query->fetchAll(PDO::FETCH_ASSOC);
                                                  <option value="16">16h</option>
                                                 <option value="17">17h</option>
                                                 <option value="18">18h</option>
-                                                <option value="19">19h</option>
+                                                
                                             </select>
                                     </div>
                                      
-                                </div>
-                                <div class="form-group row">
-                                    <div class="col-sm-12 mb-3 mb-sm-0">
-                                    <label for="hour-select">Veuillez choisir l'heure de fin</label>
-                                    <select   class="form-control form-control-user" name = "heure_fin" >
+                                
+                                    <div class="col-sm-4 mb-3 mb-sm-0">
+                                    <label for="heure_fin">Heure de fin</label>
+                                    <select   class="form-control form-control-user" name = "heure_fin"  id = "heure_fin" >
                                                  
-                                                <option value="8">8h</option>
+                                    <option value="">selectionner heure de fin</option>
                                                 <option value="9">9h</option>
                                                  <option value="10">10h</option>
                                                 <option value="11">11h</option>
@@ -277,75 +310,100 @@ $result = $query->fetchAll(PDO::FETCH_ASSOC);
 
                         </div>
 
-                        <div class="col-lg-8">
-
-                            <div class="card shadow mb-4">
-                                <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Liste des réservations</h6>
-                                </div>
-                                <div class="card-body">
-                                <div class="table-responsive">
-                                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                                    <thead>
-                                        <tr>
-                                            <th>Id</th>
-                                            <th>date</th>
-                                            <th>heure début</th>
-                                            <th>heure fin</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                   
-                                    <tbody>
-                                    <?php
-                                    $i = 0;
-                                        foreach($result as $liste){
-                                            $i++;
-                                            ?>
-                                            <tr>
-                                            <td><?= $i ?></td>
-                                            <td><?= $liste['date'] ?></td>
-                                            <td><?= $liste['heure_debut'] ?></td>
-                                            <td><?= $liste['heure_fin'] ?></td>
-                                            <td><a href="#" class="btn btn-danger btn-circle">
-                                                <i class="fas fa-trash"></i>
-                                            </a></td>
-                                            </tr>
-                                            <?php
-                                        }
-                                    ?>
-                                        <!-- <tr>
-                                            <td>1</td>
-                                            <td>PDG</td>
-                                            <td>Paris</td>
-                                            <td>16 Rue Robert Collet</td>
-                                            <td>6100990999</td>
-                                            <td><a href="#" class="btn btn-danger btn-circle">
-                                                <i class="fas fa-trash"></i>
-                                            </a></td>
-                                            
-                                        </tr>
-                                        <tr>
-                                            <td>2</td>
-                                            <td>ASCOMA</td>
-                                            <td>Rennes</td>
-                                            <td>16 Rue Robert Collet</td>
-                                            <td>610888888</td>
-                                            <td><a href="#" class="btn btn-danger btn-circle">
-                                                <i class="fas fa-trash"></i>
-                                            </a></td>
-                                            
-                                        </tr> -->
-                                        
-                                    </tbody>
-                                </table>
-                            </div>
-                                </div>
-                            </div>
-
-                        </div>
+                        
 
                     </div>
+
+                    <div class="row">
+
+
+
+                <div class="col-lg-12">
+
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Liste des réservations</h6>
+                        </div>
+                        <div class="card-body">
+                        <div class="table-responsive">
+                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Adherant</th>
+                                    <th>Terrain</th>
+                                    <th>Raison Specifique</th>
+                                    <th>Date reservation</th>
+                                    <th>heure début</th>
+                                    <th>heure fin</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                        
+                            <tbody>
+                            <?php
+                            $i = 0;
+                                foreach($result as $liste){
+                                    $i++;
+                                    ?>
+                                    <tr>
+                                    <td><?= $i ?></td>
+                                    <td><?= $liste['adherant'] ?></td>
+                                    <td><?= $liste['terrain'] ?></td>
+                                    <td><span class="badge badge-<?= $liste['couleur'] ?>"><?= $liste['raisonspecifique'] ?></span></td>
+                                    <td><?= date("d/m/Y", strtotime( $liste['date_reservation'])); ?></td>
+                                    <td><?= $liste['heure_debut'] ?> H</td>
+                                    <td><?= $liste['heure_fin'] ?> H</td>
+                                    <?php 
+                                        if($user['email']==$liste['email'])
+                                        {
+                                    ?>
+                                    <td><a href="?action=delete&id=<?= $liste['id'] ?>" class="btn btn-danger btn-circle">
+                                        <i class="fas fa-trash"></i>
+                                    </a></td>
+                                    <?php 
+                                        } else {
+                                    ?>
+                                    <td></td>
+                                    <?php        
+                                        }
+                                    ?>
+                                    </tr>
+                                    <?php
+                                }
+                            ?>
+                                <!-- <tr>
+                                    <td>1</td>
+                                    <td>PDG</td>
+                                    <td>Paris</td>
+                                    <td>16 Rue Robert Collet</td>
+                                    <td>6100990999</td>
+                                    <td><a href="#" class="btn btn-danger btn-circle">
+                                        <i class="fas fa-trash"></i>
+                                    </a></td>
+                                    
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td>ASCOMA</td>
+                                    <td>Rennes</td>
+                                    <td>16 Rue Robert Collet</td>
+                                    <td>610888888</td>
+                                    <td><a href="#" class="btn btn-danger btn-circle">
+                                        <i class="fas fa-trash"></i>
+                                    </a></td>
+                                    
+                                </tr> -->
+                                
+                            </tbody>
+                        </table>
+                    </div>
+                        </div>
+                    </div>
+
+                </div>
+
+</div>
 
                 </div>
                 <!-- /.container-fluid -->

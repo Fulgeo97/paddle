@@ -1,3 +1,51 @@
+<?php
+
+require_once('connectdb.php');
+
+
+$message = "";
+ 
+
+if(isset($_POST)){
+     
+    if(isset($_POST['email']) && !empty($_POST['email'])
+        && isset($_POST['password']) && !empty($_POST['password'])){
+           
+           
+
+            $email = strip_tags($_POST['email']);
+            $password = strip_tags(md5($_POST['password']));
+
+           
+
+            $sql = "SELECT * FROM `adherant` WHERE email = '$email' and password = '$password'";
+             
+            // On prépare la requête
+            $query = $db->prepare($sql);
+
+            // On exécute la requête
+            $query->execute();
+
+            // On stocke le résultat dans un tableau associatif
+            $result = $query->fetchAll(PDO::FETCH_ASSOC);
+    
+            if (count($result)==0) {
+                $message = "email ou password incorrect";
+            } else {
+                session_start();
+                $_SESSION['user'] = $result[0];
+               
+
+                 header('Location: reservation.php');
+            }
+
+        }
+    }
+
+
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -41,20 +89,26 @@
                                     <div class="text-center">
                                         <h1 class="h4 text-gray-900 mb-4">Reza Paddle</h1>
                                     </div>
-                                    <form class="user">
+                                    <?php if($message != "") {
+                                echo '
+                                <div class="alert alert-danger" role="alert">
+                                '. $message .'
+                            </div> ';
+
+                            }
+                            ?>
+                                    <form class="user" method= "post">
                                         <div class="form-group">
-                                            <input type="email" class="form-control form-control-user"
+                                            <input type="email" name="email" class="form-control form-control-user"
                                                 id="exampleInputEmail" aria-describedby="emailHelp"
                                                 placeholder="Enter Email Address...">
                                         </div>
                                         <div class="form-group">
-                                            <input type="password" class="form-control form-control-user"
+                                            <input type="password" name="password" class="form-control form-control-user"
                                                 id="exampleInputPassword" placeholder="Password">
                                         </div>
-                                       
-                                        <a href="dashboard.php" class="btn btn-primary btn-user btn-block">
-                                            Login
-                                        </a>
+                                        <button type="submit" class="btn btn-primary btn-user btn-block" value="Submit">Login </button>
+                                        
                                         <hr>
                                         <a href="register.php" class="btn btn-danger btn-user btn-block">
                                             Inscription

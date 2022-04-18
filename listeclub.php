@@ -52,27 +52,6 @@ if(isset($_POST)){
 }
 
 
-if(isset($_GET)){
-    if(isset($_GET['action']) && !empty($_GET['action'])
-        && isset($_GET['id']) && !empty($_GET['id'])){
-           
-            if (($_GET['action'] == "delete")) {
-
-                $sql = "DELETE FROM `club` WHERE `club`.`id` =".$_GET['id'].";";
-
-                $query = $db->prepare($sql);
-    
-                $query->execute();
-                $message = "Suppression effectuée";
-
-            } 
-           
-        }
-       
-}
-
-
-
 $sql_liste = "SELECT * FROM `club`";
 
 // On prépare la requête
@@ -131,63 +110,9 @@ $result = $query->fetchAll(PDO::FETCH_ASSOC);
 
                     <div class="row">
 
-                        <div class="col-lg-4">
+                        
 
-                            <!-- Circle Buttons -->
-                            <div class="card shadow mb-4">
-                                <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Enregister un club</h6>
-                                </div>
-                                <div class="card-body">
-                                <form class="user"  method="post">
-                                <div class="form-group row">
-                                    <div class="col-sm-12 mb-3 mb-sm-0">
-                                        <input type="text" class="form-control form-control-user" id="nom" name="nom"
-                                            placeholder=" nom">
-                                    </div>
-                                     
-                                </div>
-                                <div class="form-group row">
-                                    <div class="col-sm-12 mb-3 mb-sm-0">
-                                        <input type="text" class="form-control form-control-user" id="ville" name="ville"
-                                            placeholder="ville">
-                                    </div>
-                                     
-                                </div>
-                                <div class="form-group row">
-                                    <div class="col-sm-12 mb-3 mb-sm-0">
-                                        <input type="text" class="form-control form-control-user" id="contact" name="contact"
-                                            placeholder="Contact">
-                                    </div>
-                                     
-                                </div>
-                                <div class="form-group row">
-                                    <div class="col-sm-12 mb-3 mb-sm-0">
-                                        <textarea id="adresse"  class="form-control form-control-user" 
-                                        placeholder="Describe yourself here..." name="adresse">
-                                        
-                                        </textarea>
-                                        
-                                    </div>
-                                    
-                                     
-                                </div>
-
-                                
-                                <button type="submit" class="btn btn-primary btn-user"  value="Submit">Enregister </button>
-                                
-                              
-                                <hr>
-                               
-                                </form>
-                                </div>
-                            </div>
-
-                    
-
-                        </div>
-
-                        <div class="col-lg-8">
+                        <div class="col-lg-12">
 
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
@@ -203,7 +128,7 @@ $result = $query->fetchAll(PDO::FETCH_ASSOC);
                                             <th>Ville</th>
                                             <th>Adresse</th>
                                             <th>Contact</th>
-                                            <th>Action</th>
+                                           
                                         </tr>
                                     </thead>
                                    
@@ -219,9 +144,7 @@ $result = $query->fetchAll(PDO::FETCH_ASSOC);
                                             <td><?= $liste['ville'] ?></td>
                                             <td><?= $liste['adresse'] ?></td>
                                             <td><?= $liste['contact'] ?></td>
-                                            <td><a href="?action=delete&id=<?= $liste['id'] ?>" class="btn btn-danger btn-circle">
-                                                <i class="fas fa-trash"></i>
-                                            </a></td>
+                                            
                                             </tr>
                                             <?php
                                         }

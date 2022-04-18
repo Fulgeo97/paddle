@@ -12,29 +12,18 @@ require_once('connectdb.php');
 
 $message = "";
 
-// function keygen($nbChar){
-//     return substr(str_shuffle(
-// 'abcdefghijklmnopqrstuvwxyzABCEFGHIJKLMNOPQRSTUVWXYZ0123456789_'),1, $nbChar);
-//  }
-
  
 
 if(isset($_POST)){
    
-    if(isset($_POST['nom']) && !empty($_POST['ville'])
-        && isset($_POST['adresse']) && !empty($_POST['contact'])){
+    if(isset($_POST['nom']) && !empty($_POST['description']) && !empty($_POST['lieu'])){
 
             $nom = strip_tags($_POST['nom']);
-            $ville = strip_tags($_POST['ville']);
-            $contact = strip_tags($_POST['contact']);
-            $adresse = strip_tags($_POST['adresse']);
+            $description = strip_tags($_POST['description']);
+            $lieu = strip_tags($_POST['lieu']);
              
 
-            
-
-           
-           
-            $sql = "INSERT INTO `club` (`id`, `nom`, `ville`, `adresse`, `contact`) VALUES (NULL, '$nom', '$ville', '$adresse','$contact');";
+            $sql = "INSERT INTO `terrain` (`id`, `nom`, `description`, `lieu`) VALUES (NULL, '$nom', '$description', '$lieu');";
             
 
             $query = $db->prepare($sql);
@@ -43,7 +32,7 @@ if(isset($_POST)){
             $query->execute();
           
 
-           header('Location: club.php');
+           header('Location: terrain.php');
            
             
         } 
@@ -52,13 +41,14 @@ if(isset($_POST)){
 }
 
 
+
 if(isset($_GET)){
     if(isset($_GET['action']) && !empty($_GET['action'])
         && isset($_GET['id']) && !empty($_GET['id'])){
            
             if (($_GET['action'] == "delete")) {
 
-                $sql = "DELETE FROM `club` WHERE `club`.`id` =".$_GET['id'].";";
+                $sql = "DELETE FROM `terrain` WHERE `terrain`.`id` =".$_GET['id'].";";
 
                 $query = $db->prepare($sql);
     
@@ -73,7 +63,7 @@ if(isset($_GET)){
 
 
 
-$sql_liste = "SELECT * FROM `club`";
+$sql_liste = "SELECT * FROM `terrain`";
 
 // On prépare la requête
 $query = $db->prepare($sql_liste);
@@ -100,7 +90,7 @@ $result = $query->fetchAll(PDO::FETCH_ASSOC);
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>SB Admin 2 - Buttons</title>
+    <title>Paddle - Dashboard</title>
 
     <!-- Custom fonts for this template-->
     <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
@@ -114,84 +104,31 @@ $result = $query->fetchAll(PDO::FETCH_ASSOC);
 </head>
 
 <body id="page-top">
-<!-- Page Wrapper -->
-<div id="wrapper">
 
-<!-- Sidebar -->
-<?php 
-   include("menu.php");
-?>
-        <!-- End of Topbar -->
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+      <!-- Sidebar -->
+        <?php 
+        include("menu.php");
+        ?>
+                <!-- End of Topbar -->
 
                 <!-- Begin Page Content -->
                 <div class="container-fluid">
 
                     <!-- Page Heading -->
-                    <h1 class="h3 mb-4 text-gray-800">Club</h1>
+                    <h1 class="h3 mb-4 text-gray-800">Terrain</h1>
 
                     <div class="row">
 
-                        <div class="col-lg-4">
+                        
 
-                            <!-- Circle Buttons -->
-                            <div class="card shadow mb-4">
-                                <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Enregister un club</h6>
-                                </div>
-                                <div class="card-body">
-                                <form class="user"  method="post">
-                                <div class="form-group row">
-                                    <div class="col-sm-12 mb-3 mb-sm-0">
-                                        <input type="text" class="form-control form-control-user" id="nom" name="nom"
-                                            placeholder=" nom">
-                                    </div>
-                                     
-                                </div>
-                                <div class="form-group row">
-                                    <div class="col-sm-12 mb-3 mb-sm-0">
-                                        <input type="text" class="form-control form-control-user" id="ville" name="ville"
-                                            placeholder="ville">
-                                    </div>
-                                     
-                                </div>
-                                <div class="form-group row">
-                                    <div class="col-sm-12 mb-3 mb-sm-0">
-                                        <input type="text" class="form-control form-control-user" id="contact" name="contact"
-                                            placeholder="Contact">
-                                    </div>
-                                     
-                                </div>
-                                <div class="form-group row">
-                                    <div class="col-sm-12 mb-3 mb-sm-0">
-                                        <textarea id="adresse"  class="form-control form-control-user" 
-                                        placeholder="Describe yourself here..." name="adresse">
-                                        
-                                        </textarea>
-                                        
-                                    </div>
-                                    
-                                     
-                                </div>
-
-                                
-                                <button type="submit" class="btn btn-primary btn-user"  value="Submit">Enregister </button>
-                                
-                              
-                                <hr>
-                               
-                                </form>
-                                </div>
-                            </div>
-
-                    
-
-                        </div>
-
-                        <div class="col-lg-8">
+                        <div class="col-lg-12">
 
                             <div class="card shadow mb-4">
                                 <div class="card-header py-3">
-                                    <h6 class="m-0 font-weight-bold text-primary">Liste des clubs</h6>
+                                    <h6 class="m-0 font-weight-bold text-primary">Liste des Terrains</h6>
                                 </div>
                                 <div class="card-body">
                                 <div class="table-responsive">
@@ -200,10 +137,9 @@ $result = $query->fetchAll(PDO::FETCH_ASSOC);
                                         <tr>
                                             <th>Id</th>
                                             <th>Nom</th>
-                                            <th>Ville</th>
-                                            <th>Adresse</th>
-                                            <th>Contact</th>
-                                            <th>Action</th>
+                                            <th>Description</th>
+                                            <th>Lieu</th>
+                                           
                                         </tr>
                                     </thead>
                                    
@@ -216,12 +152,9 @@ $result = $query->fetchAll(PDO::FETCH_ASSOC);
                                             <tr>
                                             <td><?= $i ?></td>
                                             <td><?= $liste['nom'] ?></td>
-                                            <td><?= $liste['ville'] ?></td>
-                                            <td><?= $liste['adresse'] ?></td>
-                                            <td><?= $liste['contact'] ?></td>
-                                            <td><a href="?action=delete&id=<?= $liste['id'] ?>" class="btn btn-danger btn-circle">
-                                                <i class="fas fa-trash"></i>
-                                            </a></td>
+                                            <td><?= $liste['description'] ?></td>
+                                            <td><?= $liste['lieu'] ?></td>
+                                            
                                             </tr>
                                             <?php
                                         }
@@ -314,7 +247,7 @@ $result = $query->fetchAll(PDO::FETCH_ASSOC);
     <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
 
     <!-- Custom scripts for all pages-->
-    <script src="js/sb-admin-2.min.js"></script>
+    <script src="js/sb-admin-2.js"></script>
 
 </body>
 
